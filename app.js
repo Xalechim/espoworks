@@ -213,7 +213,7 @@
     const body = $("#modal-body");
     body.innerHTML = SITE.email
       ? `“Hey Espo, it’s me. Give me a call back, or just write: <a href="mailto:${SITE.email}">${SITE.email}</a>”`
-      : `“Hey Espo, it’s me. Let’s work together.” <a href="classic/contact/">Leave a message on the contact page.</a>`;
+      : `“Hey Espo, it’s me. Let’s work together.” <a href="https://www.espoworks.com/contact">Leave a message on the contact page.</a>`;
     modal.hidden = false; $("#modal-close").focus();
   });
   const closeModal = () => { modal.hidden = true; $("#machine").focus(); };
