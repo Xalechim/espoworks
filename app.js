@@ -24,10 +24,11 @@
   /* ---------- build the shelf ---------- */
   const tapeEls = TAPES.map((t, i) => {
     const b = document.createElement("button");
-    b.className = "tape"; b.style.setProperty("--c", t.color);
+    b.className = "tape" + (t.title.length > 26 ? " long" : ""); b.style.setProperty("--c", t.color);
     b.setAttribute("aria-label", `Put in the VCR: ${t.title}`); b.title = t.title;
-    b.innerHTML = `<span class="body"></span><span class="stripe"></span><span class="label"></span>`;
+    b.innerHTML = `<span class="body"></span><span class="stripe">VHS</span><span class="label"></span>`;
     $(".label", b).textContent = t.title;
+    b.style.setProperty("--dx", [0, 6, -5, 4, -3][i % 5] + "px"); b.style.setProperty("--r", [0.4, -0.6, 0.5, -0.3, 0.7][i % 5] + "deg");
     b.addEventListener("click", () => insert(i));
     $(i < 5 ? "#row-1" : "#row-2").appendChild(b);
     return b;
@@ -89,7 +90,7 @@
   const fly = (el, frames, duration, easing = "ease-in-out") => reduced
     ? Promise.resolve(el.style.transform = frames[frames.length - 1].transform)
     : el.animate(frames, { duration, easing, fill: "forwards" }).finished;
-  const spineXf = r => xf(r.cx, r.cy, r.h / CW, r.w / CH, 90);
+  const spineXf = r => xf(r.cx, r.cy, r.w / CW, r.h / CH, 0);
 
   async function insert(i) {
     if (busy) return;
@@ -103,7 +104,7 @@
       c.style.transform = spineXf(from); btn.classList.add("out");
       await fly(c, [
         { transform: spineXf(from) },
-        { transform: xf((from.cx + slot.cx) / 2, Math.min(from.cy, slot.cy) - 40, 1, 1, 8), offset: .55 },
+        { transform: xf((from.cx + slot.cx) / 2, Math.min(from.cy, slot.cy) - 40, 1, 1, 4), offset: .55 },
         { transform: xf(slot.cx, slot.cy - 6, 1, 1, 0) },
       ], 800);
       sfx.whir(1.3); vcr("LOAD", true);
@@ -132,7 +133,7 @@
     await fly(c, [{ transform: xf(slot.cx, slot.cy + 4, .92, .08, 0) }, { transform: xf(slot.cx, slot.cy - 6, 1, 1, 0) }], 520, "ease-out");
     await fly(c, [
       { transform: xf(slot.cx, slot.cy - 6, 1, 1, 0) },
-      { transform: xf((to.cx + slot.cx) / 2, Math.min(to.cy, slot.cy) - 50, 1, 1, -8), offset: .45 },
+      { transform: xf((to.cx + slot.cx) / 2, Math.min(to.cy, slot.cy) - 50, 1, 1, -4), offset: .45 },
       { transform: spineXf(to) },
     ], 800);
     c.remove(); btn.classList.remove("out"); sfx.pick(); vcr("12:00", true);
