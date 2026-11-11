@@ -24,10 +24,10 @@
   /* ---------- build the shelf ---------- */
   const tapeEls = TAPES.map((t, i) => {
     const b = document.createElement("button");
-    b.className = "tape" + (t.title.length > 26 ? " long" : ""); b.style.setProperty("--c", t.color);
+    b.className = "tape" + (t.title.length > 30 ? " long" : ""); b.style.setProperty("--c", t.color);
     b.setAttribute("aria-label", `Put in the VCR: ${t.title}`); b.title = t.title;
-    b.innerHTML = `<span class="body"></span><span class="stripe">VHS</span><span class="label"></span>`;
-    $(".label", b).textContent = t.title;
+    b.innerHTML = `<span class="body"></span><span class="stripe"></span><span class="label"><b></b><i></i></span>`;
+    $(".label b", b).textContent = t.title; $(".label i", b).textContent = `T-120 · ${t.podcast ? "Podcast" : t.videos.length + (t.videos.length === 1 ? " spot" : " spots")}`;
     b.style.setProperty("--dx", [0, 6, -5, 4, -3][i % 5] + "px"); b.style.setProperty("--r", [0.4, -0.6, 0.5, -0.3, 0.7][i % 5] + "deg");
     b.addEventListener("click", () => insert(i));
     $(i < 5 ? "#row-1" : "#row-2").appendChild(b);
@@ -112,6 +112,7 @@
       sfx.clunk(); c.remove();
       const sl = $("#vcr-slot"); sl.style.setProperty("--c", t.color); sl.classList.add("loaded");
       current = i; vidIdx = 0; $("#btn-eject").disabled = false;
+      $("#tv-glow").style.setProperty("--glow", t.color); stage.style.setProperty("--glow", t.color); stage.classList.add("tv-on");
       setGuide(i);
       document.getElementById("tv").classList.add("flicker");
       showScreen("idle"); await burst(850);
@@ -123,7 +124,7 @@
   async function doEject() {
     const i = current; if (i === null) return;
     const t = TAPES[i], btn = tapeEls[i];
-    stopCounter(); vcr("EJECT", true); sfx.eject(); current = null; $("#btn-eject").disabled = true;
+    stopCounter(); vcr("EJECT", true); sfx.eject(); current = null; $("#btn-eject").disabled = true; stage.classList.remove("tv-on"); stage.style.setProperty("--glow", "#4aa3ff");
     showScreen("idle"); osd("", "", 1); turnKnob(0); resetGuide();
     const slot = rectOf($("#vcr-slot")), c = makeCassette(t);
     $("#vcr-slot").classList.remove("loaded");
@@ -170,9 +171,9 @@
   /* ---------- guide panel ---------- */
   const gTitle = $("#guide-title"), gBody = $("#guide-body"), gChans = $("#guide-channels"), gNow = $("#guide-now");
   const intro = gBody.innerHTML, introTitle = gTitle.textContent;
-  function resetGuide() { gTitle.textContent = introTitle; gBody.innerHTML = intro; gChans.innerHTML = ""; gNow.textContent = "Now showing: nothing. Pick a tape!"; }
+  function resetGuide() { gTitle.textContent = introTitle; gBody.innerHTML = intro; gChans.innerHTML = ""; gNow.textContent = "No tape loaded"; }
   function setGuide(i) {
-    const t = TAPES[i]; gTitle.textContent = t.title; gNow.textContent = `Now showing: ${t.title}`;
+    const t = TAPES[i]; gTitle.textContent = t.title; gNow.textContent = t.title;
     gBody.innerHTML = ""; t.blurb.forEach(p => { const e = document.createElement("p"); e.textContent = p; gBody.appendChild(e); });
     gChans.innerHTML = "";
     if (t.podcast) { const li = document.createElement("li"); li.innerHTML = `<a class="listen" target="_blank" rel="noopener" href="${t.podcast.url}">Listen on Apple Podcasts ↗</a>`; gChans.appendChild(li); return; }
@@ -202,7 +203,7 @@
   $("#btn-eject").addEventListener("click", () => { sfx.unlock(); eject(); });
   function toggleSfx() {
     sfx.unlock(); sfx.setOn(!sfx.isOn());
-    const b = $("#sfx-toggle"); b.setAttribute("aria-pressed", sfx.isOn()); b.textContent = sfx.isOn() ? "🔊 Sound FX: on" : "🔇 Sound FX: off";
+    $("#sfx-toggle").setAttribute("aria-pressed", sfx.isOn()); $("#sfx-label").textContent = sfx.isOn() ? "Sound on" : "Sound off";
     if (sfx.isOn()) sfx.beep();
   }
   $("#sfx-toggle").addEventListener("click", toggleSfx);
@@ -213,8 +214,8 @@
     sfx.unlock(); sfx.beep(); sfx.clunk();
     const body = $("#modal-body");
     body.innerHTML = SITE.email
-      ? `“Hey Espo, it’s me. Give me a call back, or just write: <a href="mailto:${SITE.email}">${SITE.email}</a>”`
-      : `“Hey Espo, it’s me. Let’s work together.” <a href="https://www.espoworks.com/contact">Leave a message on the contact page.</a>`;
+      ? `Let’s work together. Write me at <a href="mailto:${SITE.email}">${SITE.email}</a>.`
+      : `Let’s work together. <a href="https://www.espoworks.com/contact">Send a message through the contact page.</a>`;
     modal.hidden = false; $("#modal-close").focus();
   });
   const closeModal = () => { modal.hidden = true; $("#machine").focus(); };
@@ -223,5 +224,6 @@
   addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeModal(); });
   $("#resume").addEventListener("click", () => { sfx.unlock(); sfx.beep(); });
 
+  $("#plate-tapes").textContent = TAPES.length; $("#plate-spots").textContent = TAPES.reduce((n, t) => n + Math.max(t.videos.length, t.podcast ? 1 : 0), 0);
   osd("", "", 1);
 })();
